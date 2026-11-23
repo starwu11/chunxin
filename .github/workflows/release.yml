@@ -1,0 +1,42 @@
+name: 打包并发布 App 安装包
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出源码
+        uses: actions/checkout@v4
+
+      - name: 生成版本号
+        id: ver
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=v$(date +%Y%m%d-%H%M)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 打包源码为 zip
+        run: |
+          zip -r app-source-${{ steps.ver.outputs.tag }}.zip . \
+            -x 'node_modules/*' 'data/*' '.git/*' \
+               '*.log' '.env' '.DS_Store' 'app-source-*.zip'
+
+      - name: 创建 Release 并上传安装包
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: 膜登时代 App ${{ steps.ver.outputs.tag }}
+          files: app-source-${{ steps.ver.outputs.tag }}.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
