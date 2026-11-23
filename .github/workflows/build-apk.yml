@@ -109,16 +109,16 @@ jobs:
           fi
           APK="android-app/android/app/build/outputs/apk/debug/app-debug.apk"
           test -f "$APK" || { echo "APK 不存在"; exit 1; }
-          cp "$APK" "膜登时代-v${VER}.apk"
+          cp "$APK" "mengdeng-v${VER}.apk"
           echo "ver=${VER}" >> "$GITHUB_OUTPUT"
-          ls -lh "膜登时代-v${VER}.apk"
+          ls -lh "mengdeng-v${VER}.apk"
 
       - name: 发布 APK 到 Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: apk-${{ steps.apk.outputs.ver }}
           name: 膜登时代 安卓版 v${{ steps.apk.outputs.ver }}
-          files: 膜登时代-v${{ steps.apk.outputs.ver }}.apk
+          files: mengdeng-v${{ steps.apk.outputs.ver }}.apk
           body: |
             ## 膜登时代 安卓版
 
