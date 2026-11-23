@@ -1,0 +1,19 @@
+{
+  "appId": "com.mdsd.clouddisk",
+  "appName": "膜登时代",
+  "webDir": "www",
+  "server": {
+    "url": "http://124.71.185.131:8080",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 800,
+      "backgroundColor": "#3a2410",
+      "showSpinner": false
+    }
+  }
+}
