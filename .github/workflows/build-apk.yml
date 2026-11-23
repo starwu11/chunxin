@@ -42,23 +42,67 @@ jobs:
         working-directory: android-app
         run: npx cap add android
 
-      - name: 生成各密度应用图标
+      - name: 生成各密度应用图标（含 Android 8+ 自适应图标）
         working-directory: android-app
         run: |
           pip3 install --quiet Pillow
-          RES=android/app/src/main/res
           python3 - <<'PYEOF'
           from PIL import Image
-          import os
+          import os, re
+
           src = Image.open('assets/icon.png').convert('RGBA')
           res = 'android/app/src/main/res'
+          bg = src.getpixel((0, 0))[:3]
+
+          # 抠掉深棕底色，保留香槟金 MDSD 作为自适应图标前景
+          fg = src.copy()
+          px = fg.load()
+          w, h = fg.size
+          for y in range(h):
+              for x in range(w):
+                  r, g, b, a = px[x, y]
+                  d = abs(r - bg[0]) + abs(g - bg[1]) + abs(b - bg[2])
+                  if d <= 12:
+                      px[x, y] = (0, 0, 0, 0)
+                  elif d < 60:
+                      px[x, y] = (r, g, b, min(a, int(255 * (d - 12) / 48)))
+
           for density, size in [('mdpi',48),('hdpi',72),('xhdpi',96),('xxhdpi',144),('xxxhdpi',192)]:
               d = os.path.join(res, 'mipmap-' + density)
               os.makedirs(d, exist_ok=True)
-              img = src.resize((size, size), Image.LANCZOS)
-              img.save(os.path.join(d, 'ic_launcher.png'))
-              img.save(os.path.join(d, 'ic_launcher_round.png'))
-          print('图标生成完成')
+              src.resize((size, size), Image.LANCZOS).save(os.path.join(d, 'ic_launcher.png'))
+              src.resize((size, size), Image.LANCZOS).save(os.path.join(d, 'ic_launcher_round.png'))
+              # 前景内容缩到 62% 居中，避免被圆形/圆角遮罩裁掉
+              inner = max(1, int(size * 0.62))
+              layer = fg.resize((inner, inner), Image.LANCZOS)
+              canvas = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+              canvas.alpha_composite(layer, ((size - inner) // 2, (size - inner) // 2))
+              canvas.save(os.path.join(d, 'ic_launcher_foreground.png'))
+
+          # 覆盖 Capacitor 默认自适应图标（默认前景是蓝色 C，导致桌面图标不更新）
+          v26 = os.path.join(res, 'mipmap-anydpi-v26')
+          os.makedirs(v26, exist_ok=True)
+          adaptive = '''<?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@color/ic_launcher_background" />
+              <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+          </adaptive-icon>
+          '''
+          for name in ('ic_launcher.xml', 'ic_launcher_round.xml'):
+              with open(os.path.join(v26, name), 'w', encoding='utf-8') as f:
+                  f.write(adaptive)
+
+          # 背景色与图标底色 #3A2410 保持一致
+          cv = os.path.join(res, 'values', 'colors.xml')
+          s = open(cv, encoding='utf-8').read() if os.path.exists(cv) else '<resources></resources>'
+          color = '<color name="ic_launcher_background">#3A2410</color>'
+          if 'name="ic_launcher_background"' in s:
+              s = re.sub(r'<color name="ic_launcher_background">[^<]*</color>', color, s)
+          else:
+              s = s.replace('</resources>', '  ' + color + '\n</resources>')
+          with open(cv, 'w', encoding='utf-8') as f:
+              f.write(s)
+          print('图标生成完成（含自适应图标）')
           PYEOF
 
       - name: 配置应用名、权限与明文访问
@@ -126,6 +170,7 @@ jobs:
 
             - 版本：v${{ steps.apk.outputs.ver }}
             - 类型：Android 安装包（APK）
+            - 本次修复：桌面图标改为膜登时代 MDSD 标志（含 Android 8+ 自适应图标）
           generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
