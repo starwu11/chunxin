@@ -45,14 +45,21 @@ jobs:
       - name: 生成各密度应用图标
         working-directory: android-app
         run: |
+          pip3 install --quiet Pillow
           RES=android/app/src/main/res
-          for d in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
-            dir="mipmap-${d%%:*}"
-            size="${d##*:}"
-            mkdir -p "$RES/$dir"
-            convert assets/icon.png -resize ${size}x${size} "$RES/$dir/ic_launcher.png"
-            convert assets/icon.png -resize ${size}x${size} "$RES/$dir/ic_launcher_round.png"
-          done
+          python3 - <<'PYEOF'
+          from PIL import Image
+          import os
+          src = Image.open('assets/icon.png').convert('RGBA')
+          res = 'android/app/src/main/res'
+          for density, size in [('mdpi',48),('hdpi',72),('xhdpi',96),('xxhdpi',144),('xxxhdpi',192)]:
+              d = os.path.join(res, 'mipmap-' + density)
+              os.makedirs(d, exist_ok=True)
+              img = src.resize((size, size), Image.LANCZOS)
+              img.save(os.path.join(d, 'ic_launcher.png'))
+              img.save(os.path.join(d, 'ic_launcher_round.png'))
+          print('图标生成完成')
+          PYEOF
 
       - name: 配置应用名、权限与明文访问
         working-directory: android-app
