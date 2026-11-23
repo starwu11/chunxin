@@ -79,9 +79,16 @@ jobs:
           s = re.sub(r'android:roundIcon="[^"]*"', 'android:roundIcon="@mipmap/ic_launcher_round"', s)
           open(p, 'w', encoding='utf-8').write(s)
           print('Manifest 已更新')
-          # 应用名设为中文「膜登时代」
-          with open('android/app/src/main/res/values/strings.xml', 'w', encoding='utf-8') as f:
-              f.write('<resources><string name="app_name">膜登时代</string></resources>')
+          # 应用名设为中文「膜登时代」（仅替换 app_name，保留其他字符串）
+          sp = 'android/app/src/main/res/values/strings.xml'
+          ss = open(sp, encoding='utf-8').read()
+          import re as _re
+          if '<string name="app_name">' in ss:
+              ss = _re.sub(r'<string name="app_name">[^<]*</string>', '<string name="app_name">膜登时代</string>', ss)
+          else:
+              ss = ss.replace('<resources>', '<resources><string name="app_name">膜登时代</string>')
+          open(sp, 'w', encoding='utf-8').write(ss)
+          print('strings.xml 已更新')
           PYEOF
 
       - name: 同步配置并构建 APK
