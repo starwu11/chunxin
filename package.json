@@ -1,0 +1,19 @@
+{
+  "name": "clouddisk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "轻量自建网盘：多用户、上传下载、分享链接、在线预览、WebDAV",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --no-warnings --experimental-sqlite server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dependencies": {
+    "docx": "^9.16.0",
+    "jpeg-js": "^0.4.4",
+    "pngjs": "^7.0.0",
+    "word-extractor": "^1.0.4"
+  }
+}

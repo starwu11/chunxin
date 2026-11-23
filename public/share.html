@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>分享 · 膜登时代</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/assets/share.css" />
+</head>
+<body>
+  <header class="share-top">
+    <a class="brand" href="/">
+      <img class="brand-logo" src="/assets/icons/logo-mark-brown.png" alt="膜登时代" />
+      <span>膜登时代</span>
+    </a>
+    <span class="top-tip">安全分享 · 由膜登时代提供</span>
+  </header>
+
+  <main class="share-main">
+    <div class="loading" id="loading">
+      <span class="spinner"></span>
+      <p>正在加载分享内容…</p>
+    </div>
+
+    <div class="share-card" id="shareCard" hidden>
+      <div class="share-file-head" id="shareHead"></div>
+      <div class="share-body" id="shareBody"></div>
+      <div class="share-foot" id="shareFoot"></div>
+    </div>
+
+    <div class="share-card password-card" id="passwordCard" hidden>
+      <div class="lock-art">
+        <svg viewBox="0 0 64 64" fill="none"><rect x="14" y="27" width="36" height="26" rx="7" stroke="currentColor" stroke-width="2.2"/><path d="M23 27v-7a9 9 0 0 1 18 0v7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="32" cy="39" r="2.6" fill="currentColor"/><path d="M32 41.5V46" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </div>
+      <h2>此分享已加密</h2>
+      <p>请输入分享者提供的提取码</p>
+      <form id="passwordForm">
+        <input id="sharePassword" type="text" inputmode="text" maxlength="16" placeholder="输入提取码" autocomplete="off" />
+        <button type="submit" id="unlockBtn">访问文件</button>
+      </form>
+      <div class="pw-error" id="pwError"></div>
+    </div>
+
+    <div class="share-card error-card" id="errorCard" hidden>
+      <div class="lock-art">
+        <svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="22" stroke="currentColor" stroke-width="2.2" opacity=".45"/><path d="M24 24l16 16M40 24 24 40" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      </div>
+      <h2 id="errorTitle">分享不存在</h2>
+      <p id="errorDesc">链接可能已失效或被分享者取消</p>
+      <a class="home-link" href="/">前往膜登时代</a>
+    </div>
+  </main>
+
+  <div class="preview-backdrop" id="previewBackdrop" hidden>
+    <div class="preview-head">
+      <div class="preview-name" id="previewName"></div>
+      <div class="preview-tools">
+        <button class="icon-btn light" id="zoomOut" title="缩小">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14" stroke-linecap="round"/></svg>
+        </button>
+        <button class="icon-btn light" id="zoomReset" title="还原" style="font-size:11px;font-weight:600">1:1</button>
+        <button class="icon-btn light" id="zoomIn" title="放大">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+        </button>
+        <button class="icon-btn light" id="previewClose" title="关闭">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="preview-body" id="previewBody"></div>
+  </div>
+
+  <footer class="share-footer">膜登时代 · 轻量私有网盘</footer>
+  <script src="/assets/zoom.js"></script>
+  <script src="/assets/share.js"></script>
+</body>
+</html>

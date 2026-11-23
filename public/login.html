@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>登录 · 膜登时代</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/assets/login.css" />
+</head>
+<body>
+  <div class="login-wrap">
+    <section class="brand-panel">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="brand-top">
+        <img class="brand-logo" src="/assets/icons/logo-mark-white.png" alt="膜登时代" />
+        <span class="brand-name">膜登时代</span>
+      </div>
+      <div class="brand-copy">
+        <h1>把重要的文件<br />放在自己的云端</h1>
+        <p>私有部署 · 安全可控 · 随时随地访问</p>
+      </div>
+      <ul class="feature-list">
+        <li><span class="dot"></span>文件上传、下载与在线预览</li>
+        <li><span class="dot"></span>带提取码的分享链接，可设置有效期</li>
+        <li><span class="dot"></span>支持 WebDAV，像本地磁盘一样使用</li>
+      </ul>
+      <div class="brand-foot">自托管 · 数据只属于你</div>
+    </section>
+
+    <section class="form-panel">
+      <div class="form-inner">
+        <div class="mobile-brand">
+          <img src="/assets/icons/logo-mark-brown.png" alt="膜登时代" />
+          <span>膜登时代</span>
+        </div>
+
+        <div class="tabs" id="authTabs">
+          <button class="tab active" data-tab="login">登录</button>
+          <button class="tab" data-tab="register">注册</button>
+          <span class="tab-ink"></span>
+        </div>
+
+        <div class="way-switch" id="waySwitch">
+          <button type="button" class="way active" data-way="password">密码登录</button>
+          <button type="button" class="way" data-way="code">验证码登录</button>
+        </div>
+        <div class="login-extra" id="loginExtra">
+          <a href="#" class="forgot" id="forgotLink">忘记密码？</a>
+        </div>
+
+        <form id="authForm" autocomplete="on">
+          <label class="field" id="usernameField">
+            <span class="label">用户名 / 手机号</span>
+            <input id="username" name="username" type="text" placeholder="请输入用户名或手机号" autocomplete="username" />
+          </label>
+          <label class="field" id="passwordField">
+            <span class="label">密码</span>
+            <input id="password" name="password" type="password" placeholder="至少 6 位字符" autocomplete="current-password" />
+          </label>
+          <label class="remember-row" id="rememberField">
+            <input id="remember" type="checkbox" checked />
+            <span>30 天内免登录</span>
+          </label>
+          <label class="field" id="phoneField" hidden>
+            <span class="label">手机号</span>
+            <input id="phone" type="tel" inputmode="numeric" maxlength="11" placeholder="请输入 11 位手机号" autocomplete="tel" />
+          </label>
+          <label class="field" id="codeField" hidden>
+            <span class="label">验证码</span>
+            <div class="code-row">
+              <input id="code" type="text" inputmode="numeric" maxlength="6" placeholder="6 位验证码" autocomplete="one-time-code" />
+              <button type="button" class="code-btn" id="sendCode">获取验证码</button>
+            </div>
+          </label>
+          <label class="field" id="newPasswordField" hidden>
+            <span class="label">新密码</span>
+            <input id="newPassword" type="password" placeholder="至少 6 位字符" autocomplete="new-password" />
+          </label>
+          <label class="field" id="deptField" hidden>
+            <span class="label">所属部门</span>
+            <select id="department" name="department">
+              <option value="">请选择部门</option>
+              <option value="江宁店">江宁店</option>
+              <option value="大明路店">大明路店</option>
+              <option value="金城店">金城店</option>
+              <option value="仙林圣景旗舰店">仙林圣景旗舰店</option>
+            </select>
+          </label>
+          <div class="error" id="errorBox"></div>
+          <button class="submit" id="submitBtn" type="submit">登 录</button>
+        </form>
+
+        <p class="hint" id="hintText">还没有账号？<a href="#" id="switchLink">立即注册</a></p>
+      </div>
+      <p class="copyright">膜登时代 · 轻量私有网盘</p>
+    </section>
+  </div>
+  <script src="/assets/login.js"></script>
+</body>
+</html>
