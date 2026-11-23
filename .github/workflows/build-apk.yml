@@ -1,0 +1,113 @@
+name: 构建安卓 APK（膜登时代）
+
+# 触发：打 apk-* 标签，或手动点击运行（不会和源码打包工作流的 v* 标签冲突）
+on:
+  push:
+    tags: ['apk-*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出源码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 安装 Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: 安装 Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 安装 Capacitor 依赖
+        working-directory: android-app
+        run: npm install
+
+      - name: 生成 Android 工程
+        working-directory: android-app
+        run: npx cap add android
+
+      - name: 生成各密度应用图标
+        working-directory: android-app
+        run: |
+          RES=android/app/src/main/res
+          for d in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
+            dir="mipmap-${d%%:*}"
+            size="${d##*:}"
+            mkdir -p "$RES/$dir"
+            convert assets/icon.png -resize ${size}x${size} "$RES/$dir/ic_launcher.png"
+            convert assets/icon.png -resize ${size}x${size} "$RES/$dir/ic_launcher_round.png"
+          done
+
+      - name: 配置应用名、权限与明文访问
+        working-directory: android-app
+        run: |
+          python3 - <<'PYEOF'
+          import re
+          p = 'android/app/src/main/AndroidManifest.xml'
+          s = open(p, encoding='utf-8').read()
+          # 允许 HTTP 明文访问线上服务器
+          if 'usesCleartextTraffic' not in s:
+              s = s.replace('<application', '<application android:usesCleartextTraffic="true"', 1)
+          # 确保网络权限
+          if 'android.permission.INTERNET' not in s:
+              s = re.sub(r'(<manifest[^>]*>)', r'\1<uses-permission android:name="android.permission.INTERNET" />', s, count=1)
+          # 图标指向生成的 PNG
+          s = re.sub(r'android:icon="[^"]*"', 'android:icon="@mipmap/ic_launcher"', s)
+          s = re.sub(r'android:roundIcon="[^"]*"', 'android:roundIcon="@mipmap/ic_launcher_round"', s)
+          open(p, 'w', encoding='utf-8').write(s)
+          print('Manifest 已更新')
+          # 应用名设为中文「膜登时代」
+          with open('android/app/src/main/res/values/strings.xml', 'w', encoding='utf-8') as f:
+              f.write('<resources><string name="app_name">膜登时代</string></resources>')
+          PYEOF
+
+      - name: 同步配置并构建 APK
+        working-directory: android-app
+        run: |
+          npx cap sync android
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: 生成版本号与安装包
+        id: apk
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/apk-* ]]; then
+            VER="${GITHUB_REF#refs/tags/apk-}"
+          else
+            VER="$(date +%Y%m%d-%H%M)"
+          fi
+          APK="android-app/android/app/build/outputs/apk/debug/app-debug.apk"
+          test -f "$APK" || { echo "APK 不存在"; exit 1; }
+          cp "$APK" "膜登时代-v${VER}.apk"
+          echo "ver=${VER}" >> "$GITHUB_OUTPUT"
+          ls -lh "膜登时代-v${VER}.apk"
+
+      - name: 发布 APK 到 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-${{ steps.apk.outputs.ver }}
+          name: 膜登时代 安卓版 v${{ steps.apk.outputs.ver }}
+          files: 膜登时代-v${{ steps.apk.outputs.ver }}.apk
+          body: |
+            ## 膜登时代 安卓版
+
+            直接下载 APK 安装到手机即可。首次安装需在系统设置中允许「安装未知来源应用」。
+
+            - 版本：v${{ steps.apk.outputs.ver }}
+            - 类型：Android 安装包（APK）
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
