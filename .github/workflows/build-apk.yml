@@ -92,16 +92,17 @@ jobs:
               with open(os.path.join(v26, name), 'w', encoding='utf-8') as f:
                   f.write(adaptive)
 
-          # 背景色与图标底色 #3A2410 保持一致
-          cv = os.path.join(res, 'values', 'colors.xml')
-          s = open(cv, encoding='utf-8').read() if os.path.exists(cv) else '<resources></resources>'
-          color = '<color name="ic_launcher_background">#3A2410</color>'
-          if 'name="ic_launcher_background"' in s:
-              s = re.sub(r'<color name="ic_launcher_background">[^<]*</color>', color, s)
-          else:
-              s = s.replace('</resources>', '  ' + color + '\n</resources>')
-          with open(cv, 'w', encoding='utf-8') as f:
-              f.write(s)
+          # 背景色与图标底色 #3A2410 保持一致（只改已有定义，避免重复资源）
+          for fn in ('colors.xml', 'ic_launcher_background.xml'):
+              p = os.path.join(res, 'values', fn)
+              if not os.path.exists(p):
+                  continue
+              s = open(p, encoding='utf-8').read()
+              if 'name="ic_launcher_background"' not in s:
+                  continue
+              s = re.sub(r'(<color[^>]*name="ic_launcher_background"[^>]*>)[^<]*(</color>)', r'\g<1>#3A2410\g<2>', s)
+              with open(p, 'w', encoding='utf-8') as f:
+                  f.write(s)
           print('图标生成完成（含自适应图标）')
           PYEOF
 
