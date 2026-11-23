@@ -16,10 +16,10 @@ jobs:
       - name: 检出源码
         uses: actions/checkout@v4
 
-      - name: 安装 Node 20
+      - name: 安装 Node 22
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: 安装 Java 17
         uses: actions/setup-java@v4
@@ -27,8 +27,12 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: 安装 Android SDK
-        uses: android-actions/setup-android@v3
+      # 使用 GitHub runner 自带的 Android SDK（已配置 ANDROID_HOME）
+      - name: 确认 Android SDK 环境
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          test -d "$ANDROID_HOME/platforms" && echo "SDK 就绪 ✅" || echo "SDK 路径需确认"
 
       - name: 安装 Capacitor 依赖
         working-directory: android-app
