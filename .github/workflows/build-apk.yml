@@ -42,6 +42,17 @@ jobs:
         working-directory: android-app
         run: npx cap add android
 
+      - name: 注入原生下载桥（真实下载到系统下载目录 + 进度回调）
+        working-directory: android-app
+        run: |
+          JAVA_DIR="android/app/src/main/java/com/mdsd/clouddisk"
+          mkdir -p "$JAVA_DIR"
+          cp native/DownloadBridge.java "$JAVA_DIR/DownloadBridge.java"
+          cp native/MainActivity.java "$JAVA_DIR/MainActivity.java"
+          echo "原生下载桥已注入：$JAVA_DIR"
+          test -f "$JAVA_DIR/DownloadBridge.java" || { echo "DownloadBridge.java 注入失败"; exit 1; }
+          test -f "$JAVA_DIR/MainActivity.java" || { echo "MainActivity.java 注入失败"; exit 1; }
+
       - name: 生成各密度应用图标（全新资源名 mdsd_icon，绕过桌面图标缓存）
         working-directory: android-app
         run: |
@@ -113,11 +124,14 @@ jobs:
           # 确保网络权限
           if 'android.permission.INTERNET' not in s:
               s = re.sub(r'(<manifest[^>]*>)', r'\1<uses-permission android:name="android.permission.INTERNET" />', s, count=1)
+          # 旧版 Android（<=9）写公共下载目录需要存储权限；Android 10+ 走 MediaStore 无需权限
+          if 'android.permission.WRITE_EXTERNAL_STORAGE' not in s:
+              s = re.sub(r'(<manifest[^>]*>)', r'\1<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />', s, count=1)
           # 图标指向全新资源名（改变 resource ID，强制桌面刷新）
           s = re.sub(r'android:icon="[^"]*"', 'android:icon="@mipmap/mdsd_icon"', s)
           s = re.sub(r'android:roundIcon="[^"]*"', 'android:roundIcon="@mipmap/mdsd_icon_round"', s)
           open(p, 'w', encoding='utf-8').write(s)
-          print('Manifest 已更新，icon -> @mipmap/mdsd_icon')
+          print('Manifest 已更新，icon -> @mipmap/mdsd_icon，已加存储权限')
           # 应用名设为中文「膜登时代」（仅替换 app_name，保留其他字符串）
           sp = 'android/app/src/main/res/values/strings.xml'
           ss = open(sp, encoding='utf-8').read()
@@ -165,8 +179,8 @@ jobs:
 
             - 版本：v${{ steps.apk.outputs.ver }}
             - 类型：Android 安装包（APK）
-            - 本次修复：桌面图标改用全新资源标识，彻底解决覆盖安装后仍显示旧图标的问题
-            - **请务必先卸载旧版再安装新版**，否则桌面可能仍显示缓存图标
+            - 本次修复：下载改为原生实现，文件真正保存到手机「下载/膜登时代」目录，并显示真实进度与结果
+            - **请务必先卸载旧版再安装新版**，避免旧版残留导致下载仍异常
           generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
